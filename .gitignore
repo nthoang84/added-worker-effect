@@ -47,3 +47,12 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# API key
+ipums_cps_api.txt
+
+data/processed/
+data/raw/
+
+.DS_Store
+
