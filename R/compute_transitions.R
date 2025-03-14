@@ -136,5 +136,3 @@ latex_table, "\n\n",
 )
 
 writeLines(tex_document, con = file.path(path_tables, "transitions.tex"))
-
-# for file in tables/*.tex; do pdflatex -output-directory=tables "$file"; done
