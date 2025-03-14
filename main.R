@@ -22,9 +22,9 @@ options(knitr.kable.NA = "")
 
 # Control flags for conditional execution
 flag_extract_data <- FALSE    
-flag_process_data <- TRUE    
-flag_compute_transitions <- TRUE
-flag_run_regressions <- TRUE 
+flag_process_data <- FALSE    
+flag_compute_transitions <- FALSE
+flag_run_regressions <- FALSE 
 
 # Define file paths
 path_data_raw <- "data/raw/"

@@ -25,7 +25,7 @@ For more details, please visit the [IPUMS API documentation](https://developer.i
 
 #### Control flags for execution of subprograms
 
-In `main.R`, several control flags allow you to select which subprograms to run. It is recommended that you first extract data as an isolated step to ensure that the raw (and very large) data is downloaded correctly before proceeding with data cleaning and analysis.
+In `main.R`, several control flags allow you to select which subprograms to run. It is recommended that you first extract the data as an isolated step to ensure that the raw (and very large) dataset is downloaded correctly before proceeding with data cleaning and analysis. By default, all flags are turned off to avoid expensive computations until you are fully aware of the process.
 
 Now, I provide a description of each subprogram below and the expected outputs produced by them.
 
