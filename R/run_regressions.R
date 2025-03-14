@@ -61,7 +61,7 @@ coef_plot <- ggplot(df_coefs, aes(x = Estimate, y = Label)) +
 
 print(coef_plot)
 
-ggsave("figures/awe.pdf", plot = coef_plot, width = 8, height = 6)
+ggsave(file.path(path_figures, "awe.pdf"), plot = coef_plot, width = 8, height = 6)
 
 
 # Plot for subsamples by age of spouse
@@ -127,4 +127,4 @@ coef_plot <- ggplot(df_coefs_all, aes(x = Estimate, y = Label)) +
 
 print(coef_plot)
 
-ggsave("figures/awe_by_age_spouse.pdf", plot = coef_plot, width = 12, height = 6)
+ggsave(file.path(path_figures, "awe_by_age_spouse.pdf"), plot = coef_plot, width = 12, height = 6)
