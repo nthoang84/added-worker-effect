@@ -1,3 +1,6 @@
+# Set IPUMS API key
+set_ipums_api_key(IPUMS_API_KEY)
+
 # Define CPS extraction request for IPUMS CPS Data with specified samples and variables
 cps_extract_request <- define_extract_micro(
   collection  = "cps",

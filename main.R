@@ -40,7 +40,6 @@ if (!dir.exists(path_tables)) dir.create(path_tables, recursive = TRUE)
 
 # Main execution starts here
 if (flag_extract_data) {
-  set_ipums_api_key(IPUMS_API_KEY)
   source("R/extract_data.R")
 }
 
