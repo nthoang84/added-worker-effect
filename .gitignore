@@ -51,6 +51,7 @@ rsconnect/
 # API key
 ipums_cps_api.txt
 
+data/
 data/processed/
 data/raw/
 
@@ -58,3 +59,5 @@ data/raw/
 
 *.aux
 *.log
+
+__hidden/

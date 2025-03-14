@@ -1,5 +1,7 @@
+# Read in the tiny CPS data
 data <- read_csv(file.path(path_data_processed, "tiny_cleaned.csv"))
 
+# Calculate transition probabilities of spouse conditional on head's EE transition
 subset_ee <- data %>% 
   filter(trans_ind == 11,
          l_spempstat3 == 3,
@@ -13,6 +15,7 @@ pct_table_ee <- subset_ee %>%
 
 print(pct_table_ee)
 
+# Calculate transition probabilities of spouse conditional on head's EU transition
 subset_eu <- data %>% 
   filter(trans_ind == 12,
          l_spempstat3 == 3,
@@ -26,6 +29,7 @@ pct_table_eu <- subset_eu %>%
 
 print(pct_table_eu)
 
+# Calculate transition probabilities of spouse conditional on head's EN transition
 subset_en <- data %>% 
   filter(trans_ind == 13,
          l_spempstat3 == 3,
@@ -39,6 +43,7 @@ pct_table_en <- subset_en %>%
 
 print(pct_table_en)
 
+# Calculate average flow rates of heads
 subset_head <- data %>% 
   filter(trans_ind %in% c(11, 12, 13),
          trans_ind_sp %in% c(31, 32, 33),
@@ -53,6 +58,7 @@ pct_table_head <- subset_head %>%
   
 print(pct_table_head)
 
+# Create summary table
 table_data <- data.frame(
   Description = c("Average flow rates of primary earner", 
                   "Cond. prob. of spousal NE transition",
@@ -66,22 +72,27 @@ table_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
+# Fill in average flow rates statistics
 table_data[table_data$Description == "Average flow rates of primary earner", "EE"] <- pct_table_head$percentage[pct_table_head$trans_ind == 11]
 table_data[table_data$Description == "Average flow rates of primary earner", "EU"] <- pct_table_head$percentage[pct_table_head$trans_ind == 12]
 table_data[table_data$Description == "Average flow rates of primary earner", "EN"] <- pct_table_head$percentage[pct_table_head$trans_ind == 13]
 
+# Fill in transition probabilities of spouse conditional on head's EE transition
 table_data[table_data$Description == "Cond. prob. of spousal NE transition", "EE"] <- pct_table_ee$percentage[pct_table_ee$trans_ind_sp == 31][1]
 table_data[table_data$Description == "Cond. prob. of spousal NU transition", "EE"] <- pct_table_ee$percentage[pct_table_ee$trans_ind_sp == 32][1]
 table_data[table_data$Description == "Cond. prob. of spousal NN transition", "EE"] <- pct_table_ee$percentage[pct_table_ee$trans_ind_sp == 33][1]
 
+# Fill in transition probabilities of spouse conditional on head's EU transition
 table_data[table_data$Description == "Cond. prob. of spousal NE transition", "EU"] <- pct_table_eu$percentage[pct_table_eu$trans_ind_sp == 31][1]
 table_data[table_data$Description == "Cond. prob. of spousal NU transition", "EU"] <- pct_table_eu$percentage[pct_table_eu$trans_ind_sp == 32][1]
 table_data[table_data$Description == "Cond. prob. of spousal NN transition", "EU"] <- pct_table_eu$percentage[pct_table_eu$trans_ind_sp == 33][1]
 
+# Fill in transition probabilities of spouse conditional on head's EN transition
 table_data[table_data$Description == "Cond. prob. of spousal NE transition", "EN"] <- pct_table_en$percentage[pct_table_en$trans_ind_sp == 31][1]
 table_data[table_data$Description == "Cond. prob. of spousal NU transition", "EN"] <- pct_table_en$percentage[pct_table_en$trans_ind_sp == 32][1]
 table_data[table_data$Description == "Cond. prob. of spousal NN transition", "EN"] <- pct_table_en$percentage[pct_table_en$trans_ind_sp == 33][1]
 
+# Calculate AWE
 table_data[table_data$Description == "Cond. prob. of spousal NE transition", "AWE"] <- 
   table_data[table_data$Description == "Cond. prob. of spousal NE transition", "EU"] - 
   table_data[table_data$Description == "Cond. prob. of spousal NE transition", "EE"]
@@ -94,8 +105,10 @@ table_data[table_data$Description == "AWE (total)", "AWE"] <-
   table_data[table_data$Description == "Cond. prob. of spousal NE transition", "AWE"] + 
   table_data[table_data$Description == "Cond. prob. of spousal NU transition", "AWE"]
 
+# Print summary table to console
 print(table_data)
 
+# Create LaTeX summary table
 table_data[, 2:5] <- lapply(table_data[, 2:5], function(x) {
   ifelse(!is.na(x), paste0(x, "\\%"), "")
 })
@@ -112,8 +125,7 @@ latex_table <- row_spec(latex_table, 4, extra_latex_after = "\\midrule")
 latex_table <- paste(latex_table, collapse = "\n")
 latex_table <- str_replace_all(latex_table, "(\\\\midrule)\\\\+", "\\1")
 
-cat(latex_table)
-
+# Create a TeX document to produce PDF output of the summary table
 tex_document <- paste0(
 "\\documentclass{article}\n",
 "\\usepackage{booktabs}\n",

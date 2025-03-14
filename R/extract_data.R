@@ -1,3 +1,4 @@
+# Define CPS extraction request for IPUMS CPS Data with specified samples and variables
 cps_extract_request <- define_extract_micro(
   collection  = "cps",
   description = "IPUMS CPS Data",
@@ -78,18 +79,21 @@ cps_extract_request <- define_extract_micro(
   )
 )
 
+# Submit the extraction request
 submitted_extract <- submit_extract(cps_extract_request)
 extract_collection <- submitted_extract$collection
 extract_number <- submitted_extract$number
 
+# Wait for the extract to be ready
 downloadable_extract <- wait_for_extract(submitted_extract)
 
+# Download the extract to the raw data directory
 path_data_raw_file <- download_extract(downloadable_extract, download_dir = path_data_raw)
 
-path_data_raw_file <- file.path(path_data_raw, "cps_00004.xml") # Comment this or change the data file name
-
+# Read the IPUMS CPS microdata
 data <- read_ipums_micro(path_data_raw_file)
 
+# Select a subset of variables
 data <- data %>% 
   select(YEAR, SERIAL, MONTH, HWTFINL, CPSID, 
          STATEFIP, PERNUM, CPSIDP, CPSIDV, RELATE, 
@@ -97,7 +101,11 @@ data <- data %>%
          NCHLT5, EMPSTAT, LABFORCE, IND, NILFACT, 
          EDUC, PANLWT)
 
+# Convert variable names to lowercase
 names(data) <- tolower(names(data))
 
+# Filter data for years 1994 to 1997
 data <- data %>% filter(year >= 1994, year <= 1997)
+
+# Write a small subset to CSV
 write.csv(data, file.path(path_data_raw, "tiny.csv"), row.names = FALSE)

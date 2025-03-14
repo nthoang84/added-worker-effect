@@ -13,32 +13,45 @@ library(sandwich)
 library(stringr)
 library(zoo)
 
+# Set IPUMS API key
+IPUMS_API_KEY <- "YOUR-IPUMS-API-KEY-HERE"
+
+# Set options for displaying output
 options(pillar.sigfig = 22)
 options(knitr.kable.NA = "")
 
-flag_download <- FALSE
-flag_process_data <- FALSE
-flag_run_regressions <- FALSE
+# Control flags for conditional execution
+flag_extract_data <- FALSE    
+flag_process_data <- TRUE    
 flag_compute_transitions <- TRUE
+flag_run_regressions <- TRUE 
 
+# Define file paths
 path_data_raw <- "data/raw/"
 path_data_processed <- "data/processed/"
 path_figures <- "figures/"
 path_tables <- "tables/"
 
-if (flag_download) {
-  set_ipums_api_key(Sys.getenv("IPUMS_API_KEY"))
-  source("R/extract_data.R");
+# Create directories if they do not exist
+if (!dir.exists(path_data_raw)) dir.create(path_data_raw, recursive = TRUE)
+if (!dir.exists(path_data_processed)) dir.create(path_data_processed, recursive = TRUE)
+if (!dir.exists(path_figures)) dir.create(path_figures, recursive = TRUE)
+if (!dir.exists(path_tables)) dir.create(path_tables, recursive = TRUE)
+
+# Main execution starts here
+if (flag_extract_data) {
+  set_ipums_api_key(IPUMS_API_KEY)
+  source("R/extract_data.R")
 }
 
 if (flag_process_data) {
   source("R/process_data.R")
 }
 
-if (flag_run_regressions) {
-  source("R/run_regressions.R")
-}
-
 if (flag_compute_transitions) {
   source("R/compute_transitions.R")
+}
+
+if (flag_run_regressions) {
+  source("R/run_regressions.R")
 }

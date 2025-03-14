@@ -1,22 +1,28 @@
+# Read in the tiny CPS data
 data <- read_csv(file.path(path_data_raw, "tiny.csv"))
 
+# Filter for age between 26 and 65
 data <- data %>%
   filter(age >= 26, age <= 65)
 
+# Keep only household heads and spouses
 data <- data %>% 
   filter(relate %in% c(101, 201, 202, 203, 1114, 1116, 1117))
 
+# Group by serial, year, month and calculate household size
 data <- data %>%
   group_by(serial, year, month) %>%
   mutate(n_hh_year_month = n()) %>%
   ungroup()
 
+# Filter out single-member households
 data <- data %>%
   filter(n_hh_year_month != 1) %>%
   filter(!(n_hh_year_month > 2 & sploc == 0)) %>%
   filter(sploc != 0) %>%
   select(-n_hh_year_month)
 
+# Create employment status variable
 data <- data %>%
   mutate(empstat3 = case_when(
     empstat %in% c(1, 10, 12)      ~ 1,
@@ -25,6 +31,7 @@ data <- data %>%
     TRUE                           ~ NA_real_
   ))
 
+# Create not-in-labor-force reason variable
 data <- data %>%
   mutate(nilf_reason = case_when(
     empstat == 32                ~ 1,
@@ -37,6 +44,7 @@ data <- data %>%
     TRUE                         ~ NA_real_
   ))
 
+# Check for duplication
 dup_check <- data %>%
   count(year, month, serial, pernum) %>%
   filter(n != 1)
@@ -47,12 +55,15 @@ if (nrow(dup_check) > 0) {
   message("Unique identifier confirmed.")
 }
 
+# Create year-month variable for panel data
 data <- data %>%
   mutate(ym = as.Date(paste(data$year, data$month, "15", sep = "-")))
 
+# Set panel data structure
 data <- data %>% 
   arrange(cpsidv, ym)
 
+# Match spouse's employment status
 temp <- data %>%
   select(year, month, serial, pernum, empstat3) %>%
   rename(spouse_pernum = pernum, spouse_empstat3 = empstat3)
@@ -63,6 +74,7 @@ data <- data %>%
   filter(!is.na(spempstat3)) %>% 
   select(-spouse_pernum, -spouse_empstat3)
 
+# Match spouse's age
 temp <- data %>%
   select(year, month, serial, pernum, age) %>%
   rename(spouse_pernum = pernum, spouse_age = age)
@@ -73,6 +85,7 @@ data <- data %>%
   filter(!is.na(age_sp)) %>%
   select(-spouse_pernum, -spouse_age)
 
+# Match spouse's education level
 data <- data %>%
   mutate(college = if_else(educ >= 111, 1, 0))
 
@@ -86,6 +99,7 @@ data <- data %>%
   filter(!is.na(college_sp)) %>%
   select(-spouse_pernum, -spouse_college)
 
+# Create lagged employment status variables
 data <- data %>%
   arrange(cpsidv, ym) %>%
   group_by(cpsidv) %>%
@@ -95,6 +109,7 @@ data <- data %>%
   ) %>%
   ungroup()
 
+# Match spouse's NILF reason
 temp <- data %>%
   select(year, month, serial, pernum, nilf_reason) %>%
   rename(spouse_pernum = pernum,
@@ -108,12 +123,14 @@ data <- data %>%
   filter(sploc == spouse_pernum) %>%
   select(-spouse_pernum, -spouse_nilf_reason)
 
+# Create lagged NILF reason variable
 data <- data %>%
   arrange(cpsidv, ym) %>%
   group_by(cpsidv) %>%
   mutate(nilf_reason_sp_lag = dplyr::lag(nilf_reason_sp)) %>%
   ungroup()
 
+# Create employment status transition variable
 data <- data %>%
   mutate(trans_ind = case_when(
     empstat3 == 1 & l_empstat3 == 1 ~ 11,  # EE
@@ -128,6 +145,7 @@ data <- data %>%
     TRUE                            ~ NA_real_                       
   ))
 
+# Match spouse's employment status transition
 temp <- data %>%
   select(year, month, serial, pernum, cpsidv) %>%
   rename(spouse_pernum = pernum,
@@ -147,6 +165,7 @@ data <- data %>%
   mutate(cpsidv_sp_lag = dplyr::lag(cpsidv_sp)) %>%
   ungroup()
 
+# Match spouse's employment status transition
 temp <- data %>%
   select(year, month, serial, pernum, trans_ind) %>%
   rename(spouse_pernum = pernum,
@@ -160,30 +179,35 @@ data <- data %>%
   filter(sploc == spouse_pernum) %>%
   select(-spouse_pernum, -spouse_trans_ind)
 
+# Create race variable
 data <- data %>%
   mutate(race = case_when(
     race == 100               ~ 1,                         
     !is.na(race) & race > 100 ~ 0,           
-    TRUE                      ~ race                              
+    TRUE                      ~ race                               
   ))
 
+# Crate number of children variable
 data <- data %>%
   mutate(nchild = if_else(!is.na(nchild) & nchild > 3, 3, nchild))
 
+# Create dummies for employment status transitions of head and spouse
 data <- data %>%
   mutate(
     spouse_out = case_when(
-      trans_ind_sp %in% c(31, 32) ~ 1,  
-      trans_ind_sp == 33          ~ 0,  
+      trans_ind_sp %in% c(31, 32) ~ 1,  # spouse out indicator for NE and NU transitions
+      trans_ind_sp == 33          ~ 0,  # spouse out indicator for NN transition
       TRUE                        ~ NA_real_ 
     ),
     head_switch = case_when(
-      trans_ind == 12 ~ 1, 
-      trans_ind == 11 ~ 0, 
+      trans_ind == 12 ~ 1,  # head switch indicator for EU transition
+      trans_ind == 11 ~ 0,  # head switch indicator for EE transition
       TRUE            ~ NA_real_ 
     )
   )
 
+# Filter out observations with missing or negative weights
 data <- data %>% filter(!is.na(panlwt) & panlwt >= 0)
 
+# Write the cleaned data to CSV in the processed data directory
 write.csv(data, file.path(path_data_processed, "tiny_cleaned.csv"), row.names = FALSE)
